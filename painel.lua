@@ -1,3 +1,8 @@
+--[[
+    PAINEL DA NICOLLE 🥰 - Flee The Facility
+    Versão Futurista com Abas, Bordas Neon, Ícone e Painel Móveis
+]]
+
 local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
 local camera = workspace.CurrentCamera
@@ -131,14 +136,10 @@ closeCorner.CornerRadius = UDim.new(1, 0)
 closeCorner.Parent = closeButton
 
 -- CRIAR ABAS
-local tabs = {"🎯 ESP", "⚡ MOV", "✨ EFEITOS", "⚠️ ALERTAS"}
-local tabButtons = {}
-local currentTab = "ESP"
-
-local function createTab(name, yPos)
+local function createTab(name, xPos)
     local tab = Instance.new("TextButton")
     tab.Size = UDim2.new(0.23, 0, 0, 35)
-    tab.Position = UDim2.new(yPos, 0, 0, 60)
+    tab.Position = UDim2.new(xPos, 0, 0, 60)
     tab.BackgroundColor3 = Color3.fromRGB(40, 20, 50)
     tab.BackgroundTransparency = 0.3
     tab.BorderSizePixel = 2
@@ -148,11 +149,11 @@ local function createTab(name, yPos)
     tab.Font = Enum.Font.GothamBold
     tab.TextSize = 12
     tab.Parent = panel
-    
+
     local tabCorner = Instance.new("UICorner")
     tabCorner.CornerRadius = UDim.new(0, 10)
     tabCorner.Parent = tab
-    
+
     return tab
 end
 
@@ -184,16 +185,16 @@ local function createButton(name, setting, yPos, emoji, container)
     button.BorderSizePixel = 2
     button.BorderColor3 = Color3.fromRGB(255, 50, 150)
     button.Parent = container
-    
+
     local buttonCorner = Instance.new("UICorner")
     buttonCorner.CornerRadius = UDim.new(0, 12)
     buttonCorner.Parent = button
-    
+
     button.MouseButton1Click:Connect(function()
         settings[setting] = not settings[setting]
         button.Text = "   " .. emoji .. " " .. name .. ":  " .. (settings[setting] and "Ativado 💖" or "Desativado")
         button.TextColor3 = settings[setting] and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(255, 200, 220)
-        
+
         -- Ativar funções especiais
         if setting == "hitboxExpander" then toggleHitbox()
         elseif setting == "thirdPerson" then toggleThirdPerson()
@@ -202,7 +203,7 @@ local function createButton(name, setting, yPos, emoji, container)
         elseif setting == "infiniteStamina" then toggleInfiniteStamina()
         end
     end)
-    
+
     return yPos + 43
 end
 
@@ -292,11 +293,10 @@ local function showTab(tabName)
             child.Visible = false
         end
     end
-    
-    local yPos = 5
+
     if tabName == "ESP" then
         for _, child in ipairs(buttonContainer:GetChildren()) do
-            if child:IsA("TextButton") and child.Text:find("COMPUTADORES") or child.Text:find("FREEZER") or child.Text:find("INOCENTES") or child.Text:find("BESTA") or child.Text:find("SAÍDAS") then
+            if child:IsA("TextButton") and (child.Text:find("COMPUTADORES") or child.Text:find("FREEZER") or child.Text:find("INOCENTES") or child.Text:find("BESTA") or child.Text:find("SAÍDAS")) then
                 child.Visible = true
             end
         end
@@ -452,10 +452,11 @@ runService.RenderStepped:Connect(function()
                 text.Text = "💻 COMPUTADOR"
                 text.TextColor3 = Color3.fromRGB(255, 255, 255)
                 text.TextScaled = true
+                text.Font = Enum.Font.GothamBold
             end
         end
     end
-    
+
     -- ESP FREEZER
     if settings.freezerESP then
         for _, obj in ipairs(workspace:GetDescendants()) do
@@ -477,10 +478,11 @@ runService.RenderStepped:Connect(function()
                 text.Text = "❄️ FREEZER"
                 text.TextColor3 = Color3.fromRGB(255, 255, 255)
                 text.TextScaled = true
+                text.Font = Enum.Font.GothamBold
             end
         end
     end
-    
+
     -- ESP INOCENTES (verde)
     if settings.innocentESP then
         for _, plr in ipairs(game.Players:GetPlayers()) do
@@ -503,4 +505,5 @@ runService.RenderStepped:Connect(function()
                     frame.BackgroundTransparency = 0.2
                     local text = Instance.new("TextLabel")
                     text.Parent = frame
-                    text.S
+                    text.Size = UDim2.new(1, 0, 1, 0)
+                    text.BackgroundTran
