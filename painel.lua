@@ -1,21 +1,13 @@
---[[
-    PAINEL DA NICOLLE 🥰 - Flee The Facility
-    Versão Futurista com Abas, Bordas Neon, Ícone e Painel Móveis
-]]
-
 local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
-local camera = workspace.CurrentCamera
 local runService = game:GetService("RunService")
 local lighting = game:GetService("Lighting")
-local tweenService = game:GetService("TweenService")
 
 -- Criar GUI principal
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = player:WaitForChild("PlayerGui")
 screenGui.Name = "PainelDaNicolle"
 screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 -- Variáveis de controle
 local settings = {
@@ -24,25 +16,14 @@ local settings = {
     innocentESP = false,
     beastESP = false,
     exitESP = false,
-    speed = false,
-    fly = false,
-    superJump = false,
-    infiniteStamina = false,
-    fullbright = false,
-    thirdPerson = false,
-    invisible = false,
     hitboxExpander = false,
-    beastAlert = false,
-    speedValue = 50,
-    currentTab = "ESP"
+    fullbright = false
 }
 
 -- Variáveis para funções
-local flyConnection = nil
-local alertConnection = nil
 local originalSize = {}
 
--- CRIAR ÍCONE MINIMALISTA MÓVEL 🥰 (bordas arredondadas e neon)
+-- CRIAR ÍCONE MINIMALISTA MÓVEL 🥰
 local icon = Instance.new("TextButton")
 icon.Size = UDim2.new(0, 65, 0, 65)
 icon.Position = UDim2.new(0, 20, 0, 20)
@@ -75,7 +56,7 @@ iconGlow.Parent = icon
 
 -- CRIAR PAINEL PRINCIPAL MÓVEL
 local panel = Instance.new("Frame")
-panel.Size = UDim2.new(0, 420, 0, 580)
+panel.Size = UDim2.new(0, 380, 0, 500)
 panel.Position = UDim2.new(0, 100, 0, 100)
 panel.BackgroundColor3 = Color3.fromRGB(20, 10, 25)
 panel.BackgroundTransparency = 0.05
@@ -135,56 +116,28 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(1, 0)
 closeCorner.Parent = closeButton
 
--- CRIAR ABAS
-local function createTab(name, xPos)
-    local tab = Instance.new("TextButton")
-    tab.Size = UDim2.new(0.23, 0, 0, 35)
-    tab.Position = UDim2.new(xPos, 0, 0, 60)
-    tab.BackgroundColor3 = Color3.fromRGB(40, 20, 50)
-    tab.BackgroundTransparency = 0.3
-    tab.BorderSizePixel = 2
-    tab.BorderColor3 = Color3.fromRGB(255, 50, 150)
-    tab.Text = name
-    tab.TextColor3 = Color3.fromRGB(255, 200, 220)
-    tab.Font = Enum.Font.GothamBold
-    tab.TextSize = 12
-    tab.Parent = panel
-
-    local tabCorner = Instance.new("UICorner")
-    tabCorner.CornerRadius = UDim.new(0, 10)
-    tabCorner.Parent = tab
-
-    return tab
-end
-
--- Criar abas
-local tabEsp = createTab("🎯 ESP", 0.03)
-local tabMov = createTab("⚡ MOV", 0.27)
-local tabEfeitos = createTab("✨ EFEITOS", 0.51)
-local tabAlertas = createTab("⚠️ ALERTAS", 0.75)
-
--- Container para os botões de cada aba
+-- Container para os botões
 local buttonContainer = Instance.new("Frame")
-buttonContainer.Size = UDim2.new(0.94, 0, 0, 420)
+buttonContainer.Size = UDim2.new(0.94, 0, 0, 350)
 buttonContainer.Position = UDim2.new(0.03, 0, 0, 100)
 buttonContainer.BackgroundTransparency = 1
 buttonContainer.Parent = panel
 
 -- Função para criar botões
-local function createButton(name, setting, yPos, emoji, container)
+local function createButton(name, setting, yPos, emoji)
     local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0.95, 0, 0, 38)
+    button.Size = UDim2.new(0.95, 0, 0, 42)
     button.Position = UDim2.new(0.025, 0, 0, yPos)
     button.BackgroundColor3 = Color3.fromRGB(60, 30, 75)
     button.BackgroundTransparency = 0.4
     button.Text = "   " .. emoji .. " " .. name .. ":  Desativado"
     button.TextColor3 = Color3.fromRGB(255, 200, 220)
     button.Font = Enum.Font.Gotham
-    button.TextSize = 13
+    button.TextSize = 14
     button.TextXAlignment = Enum.TextXAlignment.Left
     button.BorderSizePixel = 2
     button.BorderColor3 = Color3.fromRGB(255, 50, 150)
-    button.Parent = container
+    button.Parent = buttonContainer
 
     local buttonCorner = Instance.new("UICorner")
     buttonCorner.CornerRadius = UDim.new(0, 12)
@@ -194,153 +147,63 @@ local function createButton(name, setting, yPos, emoji, container)
         settings[setting] = not settings[setting]
         button.Text = "   " .. emoji .. " " .. name .. ":  " .. (settings[setting] and "Ativado 💖" or "Desativado")
         button.TextColor3 = settings[setting] and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(255, 200, 220)
-
-        -- Ativar funções especiais
-        if setting == "hitboxExpander" then toggleHitbox()
-        elseif setting == "thirdPerson" then toggleThirdPerson()
-        elseif setting == "invisible" then toggleInvisible()
-        elseif setting == "beastAlert" then toggleBeastAlert()
-        elseif setting == "infiniteStamina" then toggleInfiniteStamina()
+        
+        -- Ativar hitbox expander
+        if setting == "hitboxExpander" then
+            toggleHitbox()
         end
     end)
 
-    return yPos + 43
+    return yPos + 48
 end
 
--- ABA ESP (🎯)
-local espY = 5
-espY = createButton("COMPUTADORES", "computerESP", espY, "💻", buttonContainer)
-espY = createButton("FREEZER", "freezerESP", espY, "❄️", buttonContainer)
-espY = createButton("INOCENTES", "innocentESP", espY, "😇", buttonContainer)
-espY = createButton("A BESTA", "beastESP", espY, "👾", buttonContainer)
-espY = createButton("SAÍDAS", "exitESP", espY, "🚪", buttonContainer)
+-- Criar botões de ESP
+local yPos = 10
+yPos = createButton("💻 COMPUTADORES", "computerESP", yPos, "💻")
+yPos = createButton("❄️ FREEZER", "freezerESP", yPos, "❄️")
+yPos = createButton("😇 INOCENTES", "innocentESP", yPos, "😇")
+yPos = createButton("👾 A BESTA", "beastESP", yPos, "👾")
+yPos = createButton("🚪 SAÍDAS", "exitESP", yPos, "🚪")
 
--- ABA MOVIMENTAÇÃO (⚡)
-local movY = 5
-movY = createButton("SUPER VELOCIDADE", "speed", movY, "🚀", buttonContainer)
-movY = createButton("VOAR", "fly", movY, "🕊️", buttonContainer)
-movY = createButton("SUPER PULO", "superJump", movY, "🦘", buttonContainer)
-movY = createButton("INFINITO STAMINA", "infiniteStamina", movY, "💪", buttonContainer)
+-- Separador
+local separator = Instance.new("Frame")
+separator.Size = UDim2.new(0.9, 0, 0, 2)
+separator.Position = UDim2.new(0.05, 0, 0, yPos + 5)
+separator.BackgroundColor3 = Color3.fromRGB(255, 50, 150)
+separator.BackgroundTransparency = 0.5
+separator.Parent = buttonContainer
 
--- ABA EFEITOS (✨)
-local efeitosY = 5
-efeitosY = createButton("FULL LIGHT", "fullbright", efeitosY, "🌞", buttonContainer)
-efeitosY = createButton("TERCEIRA PESSOA", "thirdPerson", efeitosY, "🎥", buttonContainer)
-efeitosY = createButton("INVISÍVEL", "invisible", efeitosY, "👻", buttonContainer)
-efeitosY = createButton("HITBOX EXPANDER", "hitboxExpander", efeitosY, "📦", buttonContainer)
+-- Botão Hitbox Expander
+yPos = yPos + 25
+yPos = createButton("📦 HITBOX EXPANDER", "hitboxExpander", yPos, "📦")
 
--- ABA ALERTAS (⚠️)
-local alertasY = 5
-alertasY = createButton("ALERTA DA BESTA", "beastAlert", alertasY, "🔔", buttonContainer)
+-- Botão Full Light (opcional)
+yPos = yPos + 10
+local fullbrightBtn = Instance.new("TextButton")
+fullbrightBtn.Size = UDim2.new(0.95, 0, 0, 42)
+fullbrightBtn.Position = UDim2.new(0.025, 0, 0, yPos)
+fullbrightBtn.BackgroundColor3 = Color3.fromRGB(60, 30, 75)
+fullbrightBtn.BackgroundTransparency = 0.4
+fullbrightBtn.Text = "   🌞 FULL LIGHT:  Desativado"
+fullbrightBtn.TextColor3 = Color3.fromRGB(255, 200, 220)
+fullbrightBtn.Font = Enum.Font.Gotham
+fullbrightBtn.TextSize = 14
+fullbrightBtn.TextXAlignment = Enum.TextXAlignment.Left
+fullbrightBtn.BorderSizePixel = 2
+fullbrightBtn.BorderColor3 = Color3.fromRGB(255, 50, 150)
+fullbrightBtn.Parent = buttonContainer
 
--- Slider de velocidade (aparece em todas as abas)
-local speedContainer = Instance.new("Frame")
-speedContainer.Size = UDim2.new(0.94, 0, 0, 60)
-speedContainer.Position = UDim2.new(0.03, 0, 1, -70)
-speedContainer.BackgroundTransparency = 1
-speedContainer.Parent = panel
+local fullCorner = Instance.new("UICorner")
+fullCorner.CornerRadius = UDim.new(0, 12)
+fullCorner.Parent = fullbrightBtn
 
-local speedLabel = Instance.new("TextLabel")
-speedLabel.Size = UDim2.new(1, 0, 0, 20)
-speedLabel.Position = UDim2.new(0, 0, 0, 0)
-speedLabel.BackgroundTransparency = 1
-speedLabel.Text = "⚡ VELOCIDADE: " .. settings.speedValue
-speedLabel.TextColor3 = Color3.fromRGB(255, 200, 220)
-speedLabel.Font = Enum.Font.GothamBold
-speedLabel.TextSize = 12
-speedLabel.Parent = speedContainer
-
-local sliderFrame = Instance.new("Frame")
-sliderFrame.Size = UDim2.new(1, 0, 0, 25)
-sliderFrame.Position = UDim2.new(0, 0, 0, 25)
-sliderFrame.BackgroundColor3 = Color3.fromRGB(60, 30, 75)
-sliderFrame.BorderSizePixel = 2
-sliderFrame.BorderColor3 = Color3.fromRGB(255, 50, 150)
-sliderFrame.Parent = speedContainer
-
-local sliderCorner = Instance.new("UICorner")
-sliderCorner.CornerRadius = UDim.new(0, 12)
-sliderCorner.Parent = sliderFrame
-
-local sliderIndicator = Instance.new("Frame")
-sliderIndicator.Size = UDim2.new(settings.speedValue / 200, 1, 0, 0)
-sliderIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 150)
-sliderIndicator.BorderSizePixel = 0
-sliderIndicator.Parent = sliderFrame
-
-local dragButton = Instance.new("TextButton")
-dragButton.Size = UDim2.new(1, 0, 1, 0)
-dragButton.BackgroundTransparency = 1
-dragButton.Text = ""
-dragButton.Parent = sliderFrame
-
-dragButton.MouseButton1Down:Connect(function()
-    local connection
-    connection = mouse.Move:Connect(function()
-        local x = math.clamp(mouse.X - sliderFrame.AbsolutePosition.X, 0, sliderFrame.AbsoluteSize.X)
-        settings.speedValue = math.floor(x / sliderFrame.AbsoluteSize.X * 200)
-        sliderIndicator.Size = UDim2.new(settings.speedValue / 200, 0, 1, 0)
-        speedLabel.Text = "⚡ VELOCIDADE: " .. settings.speedValue
-    end)
-    mouse.Button1Up:Wait()
-    connection:Disconnect()
+fullbrightBtn.MouseButton1Click:Connect(function()
+    settings.fullbright = not settings.fullbright
+    fullbrightBtn.Text = "   🌞 FULL LIGHT:  " .. (settings.fullbright and "Ativado 💖" or "Desativado")
+    fullbrightBtn.TextColor3 = settings.fullbright and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(255, 200, 220)
 end)
 
--- Função para mostrar apenas a aba selecionada
-local function showTab(tabName)
-    for _, child in ipairs(buttonContainer:GetChildren()) do
-        if child:IsA("TextButton") then
-            child.Visible = false
-        end
-    end
-
-    if tabName == "ESP" then
-        for _, child in ipairs(buttonContainer:GetChildren()) do
-            if child:IsA("TextButton") and (child.Text:find("COMPUTADORES") or child.Text:find("FREEZER") or child.Text:find("INOCENTES") or child.Text:find("BESTA") or child.Text:find("SAÍDAS")) then
-                child.Visible = true
-            end
-        end
-    elseif tabName == "MOV" then
-        for _, child in ipairs(buttonContainer:GetChildren()) do
-            if child:IsA("TextButton") and (child.Text:find("VELOCIDADE") or child.Text:find("VOAR") or child.Text:find("PULO") or child.Text:find("STAMINA")) then
-                child.Visible = true
-            end
-        end
-    elseif tabName == "EFEITOS" then
-        for _, child in ipairs(buttonContainer:GetChildren()) do
-            if child:IsA("TextButton") and (child.Text:find("LIGHT") or child.Text:find("PESSOA") or child.Text:find("INVISÍVEL") or child.Text:find("HITBOX")) then
-                child.Visible = true
-            end
-        end
-    elseif tabName == "ALERTAS" then
-        for _, child in ipairs(buttonContainer:GetChildren()) do
-            if child:IsA("TextButton") and child.Text:find("ALERTA") then
-                child.Visible = true
-            end
-        end
-    end
-end
-
--- Eventos das abas
-tabEsp.MouseButton1Click:Connect(function() showTab("ESP") end)
-tabMov.MouseButton1Click:Connect(function() showTab("MOV") end)
-tabEfeitos.MouseButton1Click:Connect(function() showTab("EFEITOS") end)
-tabAlertas.MouseButton1Click:Connect(function() showTab("ALERTAS") end)
-
--- Abrir/fechar painel
-icon.MouseButton1Click:Connect(function()
-    panel.Visible = not panel.Visible
-end)
-
-closeButton.MouseButton1Click:Connect(function()
-    panel.Visible = false
-end)
-
--- Mostrar aba ESP por padrão
-showTab("ESP")
-
--- FUNÇÕES ESPECIAIS
-
+-- Função Hitbox Expander
 local function toggleHitbox()
     if settings.hitboxExpander and player.Character then
         for _, part in ipairs(player.Character:GetDescendants()) do
@@ -351,87 +214,26 @@ local function toggleHitbox()
         end
     elseif player.Character then
         for part, size in pairs(originalSize) do
-            if part and part.Parent then part.Size = size end
-        end
-    end
-end
-
-local function toggleThirdPerson()
-    if settings.thirdPerson then
-        workspace.CurrentCamera.CameraType = Enum.CameraType.Fixed
-        runService:BindToRenderStep("ThirdPerson", Enum.RenderPriority.Camera.Value, function()
-            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                workspace.CurrentCamera.CFrame = CFrame.new(player.Character.HumanoidRootPart.Position + Vector3.new(0, 5, 10), player.Character.HumanoidRootPart.Position)
+            if part and part.Parent then
+                part.Size = size
             end
-        end)
-    else
-        workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
-        runService:UnbindFromRenderStep("ThirdPerson")
-    end
-end
-
-local function toggleInvisible()
-    if settings.invisible and player.Character then
-        for _, part in ipairs(player.Character:GetDescendants()) do
-            if part:IsA("BasePart") then part.Transparency = 1 end
-        end
-    elseif player.Character then
-        for _, part in ipairs(player.Character:GetDescendants()) do
-            if part:IsA("BasePart") then part.Transparency = 0 end
         end
     end
 end
 
-local function toggleBeastAlert()
-    if alertConnection then alertConnection:Disconnect() end
-    if settings.beastAlert then
-        alertConnection = runService.RenderStepped:Connect(function()
-            for _, plr in ipairs(game.Players:GetPlayers()) do
-                if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                    local isBeast = false
-                    if plr.Character:FindFirstChildOfClass("Tool") then
-                        local tool = plr.Character:FindFirstChildOfClass("Tool")
-                        if tool and tool.Name:lower():find("hammer") then isBeast = true end
-                    end
-                    if isBeast and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                        local dist = (plr.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
-                        if dist < 30 then
-                            local alert = Instance.new("ScreenGui")
-                            alert.Parent = player:FindFirstChild("PlayerGui")
-                            local frame = Instance.new("Frame")
-                            frame.Size = UDim2.new(1, 0, 1, 0)
-                            frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-                            frame.BackgroundTransparency = 0.7
-                            frame.Parent = alert
-                            game:GetService("Debris"):AddItem(alert, 0.3)
-                        elseif dist < 60 then
-                            local alert = Instance.new("ScreenGui")
-                            alert.Parent = player:FindFirstChild("PlayerGui")
-                            local frame = Instance.new("Frame")
-                            frame.Size = UDim2.new(1, 0, 1, 0)
-                            frame.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
-                            frame.BackgroundTransparency = 0.8
-                            frame.Parent = alert
-                            game:GetService("Debris"):AddItem(alert, 0.2)
-                        end
-                    end
-                end
-            end
-        end)
-    end
-end
+-- Abrir/fechar painel
+icon.MouseButton1Click:Connect(function()
+    panel.Visible = not panel.Visible
+end)
 
-local function toggleInfiniteStamina()
-    if settings.infiniteStamina and player.Character and player.Character:FindFirstChild("Humanoid") then
-        player.Character.Humanoid.Running:Connect(function(speed)
-            if speed > 0 then player.Character.Humanoid.WalkSpeed = settings.speedValue end
-        end)
-    end
-end
+closeButton.MouseButton1Click:Connect(function()
+    panel.Visible = false
+end)
 
--- LOOP PRINCIPAL
-runService.RenderStepped:Connect(function()
-    -- ESP COMPUTADORES
+-- FUNÇÕES ESP
+
+-- ESP Computadores (azul)
+local function computerESP()
     if settings.computerESP then
         for _, obj in ipairs(workspace:GetDescendants()) do
             if obj.Name:lower():find("computer") and obj:IsA("BasePart") and not obj:FindFirstChild("ComputerESP") then
@@ -439,6 +241,7 @@ runService.RenderStepped:Connect(function()
                 bill.Name = "ComputerESP"
                 bill.Parent = obj
                 bill.Size = UDim2.new(0, 100, 0, 40)
+                bill.StudsOffset = Vector3.new(0, 2, 0)
                 bill.AlwaysOnTop = true
                 local frame = Instance.new("Frame")
                 frame.Parent = bill
@@ -455,9 +258,17 @@ runService.RenderStepped:Connect(function()
                 text.Font = Enum.Font.GothamBold
             end
         end
+    else
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:FindFirstChild("ComputerESP") then
+                obj.ComputerESP:Destroy()
+            end
+        end
     end
+end
 
-    -- ESP FREEZER
+-- ESP Freezer (azul claro)
+local function freezerESP()
     if settings.freezerESP then
         for _, obj in ipairs(workspace:GetDescendants()) do
             if obj.Name:lower():find("freezer") and obj:IsA("BasePart") and not obj:FindFirstChild("FreezerESP") then
@@ -465,6 +276,7 @@ runService.RenderStepped:Connect(function()
                 bill.Name = "FreezerESP"
                 bill.Parent = obj
                 bill.Size = UDim2.new(0, 100, 0, 40)
+                bill.StudsOffset = Vector3.new(0, 2, 0)
                 bill.AlwaysOnTop = true
                 local frame = Instance.new("Frame")
                 frame.Parent = bill
@@ -481,22 +293,33 @@ runService.RenderStepped:Connect(function()
                 text.Font = Enum.Font.GothamBold
             end
         end
+    else
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:FindFirstChild("FreezerESP") then
+                obj.FreezerESP:Destroy()
+            end
+        end
     end
+end
 
-    -- ESP INOCENTES (verde)
+-- ESP Inocentes (verde)
+local function innocentESP()
     if settings.innocentESP then
         for _, plr in ipairs(game.Players:GetPlayers()) do
             if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
                 local isBeast = false
                 if plr.Character:FindFirstChildOfClass("Tool") then
                     local tool = plr.Character:FindFirstChildOfClass("Tool")
-                    if tool and tool.Name:lower():find("hammer") then isBeast = true end
+                    if tool and tool.Name:lower():find("hammer") then
+                        isBeast = true
+                    end
                 end
                 if not isBeast and not plr.Character.HumanoidRootPart:FindFirstChild("InnocentESP") then
                     local bill = Instance.new("BillboardGui")
                     bill.Name = "InnocentESP"
                     bill.Parent = plr.Character.HumanoidRootPart
                     bill.Size = UDim2.new(0, 100, 0, 40)
+                    bill.StudsOffset = Vector3.new(0, 3, 0)
                     bill.AlwaysOnTop = true
                     local frame = Instance.new("Frame")
                     frame.Parent = bill
@@ -506,4 +329,151 @@ runService.RenderStepped:Connect(function()
                     local text = Instance.new("TextLabel")
                     text.Parent = frame
                     text.Size = UDim2.new(1, 0, 1, 0)
-                    text.BackgroundTran
+                    text.BackgroundTransparency = 1
+                    text.Text = "😇 INOCENTE"
+                    text.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    text.TextScaled = true
+                    text.Font = Enum.Font.GothamBold
+                end
+            end
+        end
+    else
+        for _, plr in ipairs(game.Players:GetPlayers()) do
+            if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                if plr.Character.HumanoidRootPart:FindFirstChild("InnocentESP") then
+                    plr.Character.HumanoidRootPart.InnocentESP:Destroy()
+                end
+            end
+        end
+    end
+end
+
+-- ESP Besta (vermelho)
+local function beastESP()
+    if settings.beastESP then
+        for _, plr in ipairs(game.Players:GetPlayers()) do
+            if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                local isBeast = false
+                if plr.Character:FindFirstChildOfClass("Tool") then
+                    local tool = plr.Character:FindFirstChildOfClass("Tool")
+                    if tool and tool.Name:lower():find("hammer") then
+                        isBeast = true
+                    end
+                end
+                if isBeast and not plr.Character.HumanoidRootPart:FindFirstChild("BeastESP") then
+                    local bill = Instance.new("BillboardGui")
+                    bill.Name = "BeastESP"
+                    bill.Parent = plr.Character.HumanoidRootPart
+                    bill.Size = UDim2.new(0, 120, 0, 50)
+                    bill.StudsOffset = Vector3.new(0, 3, 0)
+                    bill.AlwaysOnTop = true
+                    local frame = Instance.new("Frame")
+                    frame.Parent = bill
+                    frame.Size = UDim2.new(1, 0, 1, 0)
+                    frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+                    frame.BackgroundTransparency = 0.2
+                    local text = Instance.new("TextLabel")
+                    text.Parent = frame
+                    text.Size = UDim2.new(1, 0, 0.6, 0)
+                    text.Text = "👾 BESTA"
+                    text.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    text.TextScaled = true
+                    text.Font = Enum.Font.GothamBold
+                    local health = Instance.new("TextLabel")
+                    health.Parent = frame
+                    health.Size = UDim2.new(1, 0, 0.4, 0)
+                    health.Position = UDim2.new(0, 0, 0.6, 0)
+                    health.Text = "HP: " .. math.floor(plr.Character.Humanoid.Health)
+                    health.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    health.TextScaled = true
+                    health.Font = Enum.Font.Gotham
+                end
+            end
+        end
+    else
+        for _, plr in ipairs(game.Players:GetPlayers()) do
+            if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                if plr.Character.HumanoidRootPart:FindFirstChild("BeastESP") then
+                    plr.Character.HumanoidRootPart.BeastESP:Destroy()
+                end
+            end
+        end
+    end
+end
+
+-- ESP Saídas (dourado)
+local function exitESP()
+    if settings.exitESP then
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if (obj.Name:lower():find("door") or obj.Name:lower():find("exit") or obj.Name:lower():find("porta")) and obj:IsA("BasePart") and not obj:FindFirstChild("ExitESP") then
+                local bill = Instance.new("BillboardGui")
+                bill.Name = "ExitESP"
+                bill.Parent = obj
+                bill.Size = UDim2.new(0, 80, 0, 40)
+                bill.StudsOffset = Vector3.new(0, 2, 0)
+                bill.AlwaysOnTop = true
+                local frame = Instance.new("Frame")
+                frame.Parent = bill
+                frame.Size = UDim2.new(1, 0, 1, 0)
+                frame.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
+                frame.BackgroundTransparency = 0.3
+                local text = Instance.new("TextLabel")
+                text.Parent = frame
+                text.Size = UDim2.new(1, 0, 1, 0)
+                text.BackgroundTransparency = 1
+                text.Text = "🚪 SAÍDA"
+                text.TextColor3 = Color3.fromRGB(255, 255, 255)
+                text.TextScaled = true
+                text.Font = Enum.Font.GothamBold
+            end
+        end
+    else
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:FindFirstChild("ExitESP") then
+                obj.ExitESP:Destroy()
+            end
+        end
+    end
+end
+
+-- Loop principal
+runService.RenderStepped:Connect(function()
+    computerESP()
+    freezerESP()
+    innocentESP()
+    beastESP()
+    exitESP()
+    
+    -- Fullbright
+    if settings.fullbright then
+        lighting.FogEnd = 100000
+        lighting.Brightness = 3
+        lighting.Ambient = Color3.fromRGB(255, 255, 255)
+        lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+        lighting.ClockTime = 12
+    else
+        lighting.FogEnd = 1000
+        lighting.Brightness = 1
+        lighting.Ambient = Color3.fromRGB(127, 127, 127)
+        lighting.OutdoorAmbient = Color3.fromRGB(127, 127, 127)
+    end
+end)
+
+-- Rodapé
+local footer = Instance.new("TextLabel")
+footer.Size = UDim2.new(1, 0, 0, 35)
+footer.Position = UDim2.new(0, 0, 1, -35)
+footer.BackgroundColor3 = Color3.fromRGB(75, 0, 130)
+footer.BackgroundTransparency = 0.3
+footer.Text = "🥰 PAINEL DA NICOLLE - ESP COMPLETO 🥰"
+footer.TextColor3 = Color3.fromRGB(255, 182, 193)
+footer.Font = Enum.Font.Gotham
+footer.TextSize = 11
+footer.TextWrapped = true
+footer.Parent = panel
+
+local footerCorner = Instance.new("UICorner")
+footerCorner.CornerRadius = UDim.new(0, 15)
+footerCorner.Parent = footer
+
+print("✅ PAINEL DA NICOLLE CARREGADO! Clique no ícone 🥰 para abrir")
